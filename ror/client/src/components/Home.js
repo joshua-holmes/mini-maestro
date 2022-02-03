@@ -16,7 +16,10 @@ function Home() {
   }
 
   const selectNote = e => {
-    console.log(e.target.value);
+    setAbc(() => ({
+      current: `${abc.current} ${e.target.value}`,
+      previous: abc.current,
+    }))
   }
 
   useEffect(() => {
