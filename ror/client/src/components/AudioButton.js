@@ -7,7 +7,11 @@ function AudioButton({ visualObj }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [midiBuffer, setMidiBuffer] = useState(new ABCJS.synth.CreateSynth());
   const handleClick = e => {
-    isPlaying ? stopMusic(midiBuffer) : playMusic(midiBuffer);
+    if (visualObj.lines.length) {
+      isPlaying ? stopMusic(midiBuffer) : playMusic(midiBuffer);
+    } else {
+      console.log("Nothing to play")
+    }
   }
 
   const playMusic = (midiBuffer) => {

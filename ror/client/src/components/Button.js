@@ -18,6 +18,8 @@ font-weight: bold;
 text-transform: uppercase;
 animation-duration: 0.5s;
 animation-timing-function: ease-out;
+display: inline-flexbox;
+justify-content: center;
 &:hover {
   background:#25ced1 radial-gradient(circle, transparent 1%, #25ced1 1%) center/15000%;
   border-color: #25ced1;
@@ -35,11 +37,11 @@ animation-timing-function: ease-out;
 }
 `
 
-function Button({ children, onClick, value, highlighted }) {
+function Button({ children, onClick, value, highlighted, style }) {
   
   return (
     <StyledButton
-      style={{animationName: highlighted ? "highlight" : ""}}
+      style={{...style, animationName: highlighted ? "highlight" : ""}}
       value={value}
       onClick={onClick}
     >{children}</StyledButton>
