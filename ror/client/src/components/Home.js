@@ -12,8 +12,10 @@ bottom: 0%;
 
 function Home() {
   const [abc, setAbc] = useState({
-    trebleClef: [],
-    bassClef: [],
+    soprano: [],
+    alto: [],
+    tenor: [],
+    bass: [],
   });
   const [abcOptions, setAbcOptions] = useState(["g", "e", "c", "G", "C"]);
   const [visualObj, setVisualObj] = useState();
@@ -23,6 +25,65 @@ function Home() {
   const measures = 4;
   const bpm = 4; // Beats per measure
   const beats = measures * bpm;
+
+  const countNotes = string => {
+    if (!string) return 0;
+    let count = 0;
+    for (let i of string) {
+      const code = i.charCodeAt()
+      if ((code >= 65 && code <= 71) || (code >= 97 && code <= 103)) count++;
+    }
+    return count;
+  }
+
+  const findActivePart = () => {
+    let parts = ["soprano", "alto", "tenor", "bass"].reverse();
+    let part;
+    for (let p of parts) {
+      if (countNotes(abc[p].join("")) < beats) part = p
+    }
+    return part;
+  }
+  const activePart = findActivePart();
+  
+  const primeBass = () => {
+    const rests = [];
+    for (let i = 0; i < beats; ++i) {
+      rests.push("z");
+    }
+    return rests;
+  }
+
+  const appendNoteToArray = (note, array) => {
+    let newArr = [...array];
+    if (activePart === "tenor" && abc.tenor.length === 0) newArr = primeBass();
+    const indexOfZ = newArr.findIndex(note => note === "z");
+    if (indexOfZ >= 0) {
+      newArr[indexOfZ] = note;
+      return newArr;
+    } else {
+      newArr.push(note);
+      return newArr;
+    }
+  }
+
+  const saveNote = e => {
+    const newNote = e.target.value;
+    if (activePart) setAbc({
+      ...abc,
+      [activePart]: appendNoteToArray(newNote, abc[activePart])
+    });
+    else console.log("Song is full, no note to add.");
+  }
+
+  const partPlusActiveNote = part => {
+    if (!activePart) {
+      clearInterval(timerId);
+      console.log("Song is full, no note to add.");
+    }
+    if (activePart !== part) return abc[part]
+    else return appendNoteToArray(activeAbc, abc[part])
+  }
 
   useEffect(() => {
     let count = 0;
@@ -36,81 +97,6 @@ function Home() {
     setTimerId(() => (id));
     return cleanup;
   }, [abcOptions])
-  const setNextNote = newNote => {
-    const countNotes = string => {
-      if (!string) return 0;
-      let count = 0;
-      for (let i of string) {
-        const code = i.charCodeAt()
-        if ((code >= 65 && code <= 71) || (code >= 97 && code <= 103)) count++;
-      }
-      return count;
-    }
-    const joinNotes = (note, abcArray) => {
-      const abcCopy = [...abcArray];
-      const joinIndex = abcCopy.findIndex(notes => countNotes(notes) < 2);
-      abcCopy[joinIndex] = `[${abcCopy[joinIndex]}${note}]`
-      return abcCopy;
-    }
-    const soprano = abc.trebleClef.length < beats;
-    const alto = !soprano && countNotes(abc.trebleClef.slice(-1)[0]) < 2;
-    const tenor = !alto && countNotes(abc.trebleClef.slice(-1)[0]) >= 2 && countNotes(abc.bassClef.slice(-1)[0]) === 0;
-    const bass = abc.bassClef.length >= beats && abc.bassClef.slice(-1)[0].search(/\[/) === -1;
-
-    switch (true) {
-      case soprano:
-        return {
-          ...abc,
-          trebleClef: [...abc.trebleClef, newNote],
-        }
-      case alto:
-        return {
-          ...abc,
-          trebleClef: joinNotes(newNote, abc.trebleClef),
-        }
-      case tenor:
-        const primeBass = numOfBeats => {
-          const rests = [];
-          for (let i = 0; i < numOfBeats; ++i) {
-            rests.push("z");
-          }
-          return rests;
-        }
-
-        let abcCopy = [...abc.bassClef];
-        if (abc.bassClef.length === 0) abcCopy = primeBass(beats)
-        const index = abcCopy.indexOf("z");
-        abcCopy[index] = newNote;
-        return {
-          ...abc,
-          bassClef: abcCopy,
-        }
-      case bass:
-        return {
-          ...abc,
-          bassClef: joinNotes(newNote, abc.bassClef),
-        }
-      default:
-        clearInterval(timerId);
-        console.log("Song is full, stopping timer");
-    }
-  }
-
-  const abcStringify = abcArray => {
-    let abcString = "";
-    abcArray.forEach((note, index) => {
-      if (index % bpm === 0 && index !== 0) abcString += " |"
-      abcString += ` ${note}`
-    })
-    return abcString;
-  }
-
-  const addNote = e => {
-    const newAbc = setNextNote(e.target.value)
-    if (newAbc) setAbc(newAbc)
-  }
-
-  const activeNotes = setNextNote(activeAbc);
   
   return (
     <>
@@ -118,16 +104,22 @@ function Home() {
       <SheetMusic
         title="title"
         meter={`${bpm}/4`}
-        trebleClef={abcStringify(abc.trebleClef)}
-        bassClef={abcStringify(abc.bassClef)}
+        soprano={abc.soprano}
+        alto={abc.alto}
+        tenor={abc.tenor}
+        bass={abc.bass}
         setVisualObj={setVisualObj}
+        bpm={bpm}
       />
       {/* For displaying music */}
       <SheetMusic
         title="title"
         meter={`${bpm}/4`}
-        trebleClef={abcStringify(activeNotes ? activeNotes.trebleClef : abc.trebleClef)}
-        bassClef={abcStringify(activeNotes ? activeNotes.bassClef : abc.bassClef)}
+        soprano={partPlusActiveNote("soprano")}
+        alto={partPlusActiveNote("alto")}
+        tenor={partPlusActiveNote("tenor")}
+        bass={partPlusActiveNote("bass")}
+        bpm={bpm}
       />
       <ButtonContainer>
         <h2>Play/Stop</h2>
@@ -136,7 +128,7 @@ function Home() {
         {abcOptions.map(note => <Button
           key={note}
           value={note}
-          onClick={addNote}
+          onClick={saveNote}
           highlighted={note === activeAbc}
         >{note}</Button>)}
       </ButtonContainer>
