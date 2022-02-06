@@ -33,7 +33,18 @@ class Part {
       return scale;
     })()  
   }
-  melodicallyLimit(melody) {console.log(melody)}
+  analyzeHarmony(harmonyArr) {
+    const analysis = [];
+  }
+  melodicallyLimit(melodyArr) {
+    const options = [...this.scale];
+    const analysis = this.analyzeHarmony();
+    // tritone runs
+    // tritone skips
+    // large skips more than 6th, except octaves
+    // after skips go opposite direction, unless triadic
+    
+  }
 }
 
 export default Part;
