@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Button from './Button';
 import SheetMusic from './SheetMusic';
 import AudioButton from "./AudioButton";
+import Soprano from "../lib/soprano";
 import styled from 'styled-components';
 
 const ButtonContainer = styled.div`
