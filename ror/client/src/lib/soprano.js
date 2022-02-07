@@ -5,8 +5,9 @@ class Soprano extends Part {
     super(scale)
   }
   
-  harmonicallyLimit(harmonyArr) {
-    const analysis = this.analyzeHarmony();
+  harmonicallyLimit(harArr) {
+    const scale = [...this.scale];
+    const analysis = this.analyzeHarmony(harArr);
   // ALL  
     // No unison
     // Must fall in harmony
