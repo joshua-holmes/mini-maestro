@@ -42,6 +42,123 @@ class Part {
       return scale;
     })()
   }
+  
+  //// MAIN LIMITERS
+  melodicallyLimit(melArr) {
+    let options = [...this.scale];
+    if (melArr.length === 0) return options
+    options = this.rangeLimiter(options);
+    options = this.tritoneRunLimiter(options, melArr);
+    options = this.tritoneSkipLimiter(options, melArr);
+    options = this.largeSkipLimiter(options, melArr);
+    options = this.afterSkipLimiter(options, melArr);
+    return options;
+  }
+  harmonicallyLimit(harArr, beats, activeBeat) {
+    let options = [...this.scale];
+    options = this.harmonyLimiter(options, harArr, activeBeat, beats);
+    // Voicing limiter is optional
+    this.voicingLimiter && (options = this.voicingLimiter(options, harArr, activeBeat));
+    return options;
+  }
+
+  //// SUB-LIMITERS USED IN MAIN LIMITERS
+  // MELODIC SUB-LIMITERS
+  // limits range to note specified in SATB classes, which extend from this
+  rangeLimiter(options) {
+    const max = this.scale.indexOf(this.maxRange);
+    const min = this.scale.indexOf(this.minRange);
+    let newOptions = [...options];
+    newOptions = newOptions.filter(note => {
+      const index = this.scale.indexOf(note);
+      return (index <= max) && (index >= min)
+    })
+    return newOptions;
+  }
+  // Forbid tritone runs
+  tritoneRunLimiter(options, melArr) {
+    const indexOfLastNote = this.scale.indexOf(melArr[melArr.length - 1]);
+    let newOptions = [...options];
+    let lastNums = "";
+    melArr.slice(-5).forEach(note => lastNums += this.noteNum(note));
+    // If F-B desc, eliminate C, or if B-F desc, eliminate G
+    if (lastNums.match(/32106/) || lastNums.match(/6543/)) {
+      const noteToDelete = this.scale[indexOfLastNote + 1];
+      newOptions = newOptions.filter(note => note !== noteToDelete);
+    // If B-F asc, eliminate E, or if F-B asc, eliminate A
+    }
+    if (lastNums.match(/60123/) || lastNums.match(/3456/)) {
+      const noteToDelete = this.scale[indexOfLastNote - 1];
+      newOptions = newOptions.filter(note => note !== noteToDelete);
+    }
+    return newOptions
+  }
+  // Forbid tritone skips
+  tritoneSkipLimiter(options, melArr) {
+    let newOptions = [...options];
+    const lastNoteNum = this.noteNum(melArr[melArr.length - 1]);
+    // If last note was B, F cannot be selected next
+    if (lastNoteNum === 6) {
+      newOptions = newOptions.filter(note => this.noteNum(note) !== 3);
+    }
+    // If last note was F, B cannot be selected next
+    if (lastNoteNum === 3) {
+      newOptions = newOptions.filter(note => this.noteNum(note) !== 6);
+    }
+    return newOptions;
+  }
+  // Forbid large skips more than 6th, except octaves
+  largeSkipLimiter(options, melArr) {
+    let newOptions = [...options];
+    const indexOfLastNote = this.scale.indexOf(melArr[melArr.length - 1]);
+    newOptions = newOptions.filter(note => {
+      const indexOfNote = this.scale.indexOf(note)
+      return ((indexOfNote >= indexOfLastNote - 5) && (indexOfNote <= indexOfLastNote + 5))
+      || (indexOfNote === indexOfLastNote - 7) || (indexOfNote === indexOfLastNote + 7)
+    })
+    return newOptions;
+  }
+  // After skips go opposite direction, unless triadic
+  afterSkipLimiter(options, melArr) {
+    let newOptions = [...options];
+    const indexOfLastNote = this.scale.indexOf(melArr[melArr.length - 1]);
+    const indexOfSecToLastNote = this.scale.indexOf(melArr[melArr.length - 2]);
+    if (indexOfLastNote - indexOfSecToLastNote > 1) {
+      newOptions = newOptions.filter(note => {
+        return this.scale.indexOf(note) === indexOfLastNote ||
+        this.scale.indexOf(note) === indexOfLastNote - 1
+      })
+    } else if (indexOfSecToLastNote - indexOfLastNote > 1) {
+      newOptions = newOptions.filter(note => {
+        return this.scale.indexOf(note) === indexOfLastNote ||
+        this.scale.indexOf(note) === indexOfLastNote + 1
+      })
+    }
+    return newOptions;
+  }
+  // HARMONIC SUB-LIMITERS
+  // No passing other voices
+  voicingLimiter(options, harArr, activeBeat) {
+    let newOptions = [...options];
+    const harValues = harArr[activeBeat].map(note => this.scale.indexOf(note));
+    const lowestNote = Math.min(...harValues);
+    newOptions = newOptions.filter(note => this.scale.indexOf(note) < lowestNote)
+    return newOptions;
+  }
+  // Must fall in harmony
+  harmonyLimiter(options, harArr, activeBeat, beats) {
+    let newOptions = [...options];
+    const analysis = this.analyzeHarmony(harArr, beats);
+    newOptions = newOptions.filter(note => (
+      !!analysis[activeBeat].find(chord => {
+        const chordObj = this.chordLibrary.find(chordObj => chordObj.symbol === chord);
+        return chordObj.makeup.indexOf(this.noteNum(note)) >= 0;
+      })
+    ))
+    return newOptions;
+  }
+
+  //// HELPER FUNCTIONS
   prevChords(chordSymbol) {
     const filteredLibrary = this.chordLibrary.filter(chord => (
       chord.next.indexOf(chordSymbol) >= 0
@@ -111,103 +228,8 @@ class Part {
     ))
     return finalAnalysis;
   }
-
   uniqueArray(array) {return [...new Set(array)]}
-  
   noteNum(note) {return this.scale.indexOf(note) % 7};
-  
-  melodicallyLimit(melArr, harArr) {
-    const scale = [...this.scale];
-    const revMelArr = [...melArr].reverse();
-    const indexOfLastNote = scale.indexOf(revMelArr[0]);
-    let options = [...scale];
-    if (melArr.length === 0) return options
-    // const analysis = this.analyzeHarmony(harArr);
-    const noteNum = note => scale.indexOf(note) % 7;
-
-    // limits range to note specified in SATB classes, which extend from this
-    const rangeLimiter = () => {
-      const max = scale.indexOf(this.maxRange);
-      const min = scale.indexOf(this.minRange);
-      let newOptions = [...options];
-      newOptions = newOptions.filter(note => {
-        const index = scale.indexOf(note);
-        return (index <= max) && (index >= min)
-      })
-      return newOptions;
-    }
-    
-    // tritone runs
-    const tritoneRunLimiter = () => {
-      let newOptions = [...options];
-      let lastNums = "";
-      melArr.slice(-5).forEach(note => lastNums += noteNum(note));
-      
-      // If F-B desc, eliminate C, or if B-F desc, eliminate G
-      if (lastNums.match(/32106/) || lastNums.match(/6543/)) {
-        const noteToDelete = scale[indexOfLastNote + 1];
-        newOptions = newOptions.filter(note => note !== noteToDelete);
-      // If B-F asc, eliminate E, or if F-B asc, eliminate A
-      }
-      if (lastNums.match(/60123/) || lastNums.match(/3456/)) {
-        const noteToDelete = scale[indexOfLastNote - 1];
-        newOptions = newOptions.filter(note => note !== noteToDelete);
-      }
-      return newOptions
-    }
-
-    // tritone skips
-    const tritoneSkipLimiter = () => {
-      let newOptions = [...options];
-      const lastNoteNum = noteNum(revMelArr[0]);
-      // If last note was B, F cannot be selected next
-      if (lastNoteNum === 6) {
-        newOptions = newOptions.filter(note => noteNum(note) !== 3);
-      }
-      // If last note was F, B cannot be selected next
-      if (lastNoteNum === 3) {
-        newOptions = newOptions.filter(note => noteNum(note) !== 6);
-      }
-      return newOptions;
-    }
-
-    // large skips more than 6th, except octaves
-    const largeSkipLimiter = () => {
-      let newOptions = [...options];
-      newOptions = newOptions.filter(note => {
-        const indexOfNote = scale.indexOf(note)
-        return ((indexOfNote >= indexOfLastNote - 5) && (indexOfNote <= indexOfLastNote + 5))
-        || (indexOfNote === indexOfLastNote - 7) || (indexOfNote === indexOfLastNote + 7)
-      })
-      return newOptions;
-    }
-
-    // after skips go opposite direction, unless triadic
-    const afterSkipLimiter = () => {
-      let newOptions = [...options];
-      const indexOfSecToLastNote = scale.indexOf(revMelArr[1]);
-      if (indexOfLastNote - indexOfSecToLastNote > 1) {
-        newOptions = newOptions.filter(note => {
-          return scale.indexOf(note) === indexOfLastNote ||
-          scale.indexOf(note) === indexOfLastNote - 1
-        })
-      } else if (indexOfSecToLastNote - indexOfLastNote > 1) {
-        newOptions = newOptions.filter(note => {
-          return scale.indexOf(note) === indexOfLastNote ||
-          scale.indexOf(note) === indexOfLastNote + 1
-        })
-      }
-      return newOptions;
-    }
-
-    options = rangeLimiter();
-    options = tritoneRunLimiter();
-    options = tritoneSkipLimiter();
-    options = largeSkipLimiter();
-    options = afterSkipLimiter();
-    
-    return options;
-  }
 }
 
 export default Part;
