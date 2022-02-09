@@ -45,19 +45,11 @@ class Voice {
 
   //// COMBINES MAIN LIMITERS
   getOptions({melArr, harArr, beats, activeBeat}) {
-    // These lines are to get rid of 'z' found in the music.
-    // 'z' represents rests, but is not necessary for analysis.
-    const moddedMelArr = melArr.filter(note => note !== 'z');
-    let moddedHarArr = [...harArr];
-    if (moddedHarArr.length > 0) {
-      moddedHarArr = moddedHarArr.map(beat => (
-        beat.filter(note => note !== 'z')
-      ))
-    }
-    const melodicOptions = this.melodicallyLimit(moddedMelArr, beats, activeBeat);
-    const harmonicOptions = this.harmonicallyLimit(moddedHarArr, beats, activeBeat);
-    return melodicOptions.filter(option => harmonicOptions.indexOf(option) >= 0)
+    const melodicOptions = this.melodicallyLimit(melArr, beats, activeBeat);
+    const harmonicOptions = this.harmonicallyLimit(harArr, beats, activeBeat);
+    const combinedOptions = melodicOptions.filter(option => harmonicOptions.indexOf(option) >= 0)
       .sort((a, b) => this.scale.indexOf(b) - this.scale.indexOf(a));
+    return combinedOptions;
   }
   
   //// MAIN LIMITERS

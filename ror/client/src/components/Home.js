@@ -8,6 +8,7 @@ import Alto from "../lib/alto";
 import Tenor from "../lib/tenor";
 import Bass from "../lib/bass";
 import styled from 'styled-components';
+import { cloneDeep } from "lodash";
 
 const ButtonContainer = styled.div`
 position: absolute;
@@ -22,9 +23,8 @@ function Home() {
     bass: [],
     previous: null
   }
-  const save = JSON.parse(localStorage.getItem("save"))
-  const [abc, setAbc] = useState(defaultAbc);
-  // localStorage.setItem("save", JSON.stringify(abc))
+  const savedAbc = JSON.parse(localStorage.getItem('abc'))
+  const [abc, setAbc] = useState(savedAbc || defaultAbc);
   
   const [visualObj, setVisualObj] = useState();
   const [timerId, setTimerId] = useState(null);
@@ -51,50 +51,71 @@ function Home() {
     }
     return part;
   }
+
+  const cleanAbc = abc => {
+    let cleanCopy = cloneDeep(abc);
+    for (let part in cleanCopy) {
+      if (part !== "previous") {
+        cleanCopy[part] = cleanCopy[part].map(n => n.replace(/[0-9]/g, ''));
+        cleanCopy[part] = cleanCopy[part].filter(n => !n.match(/z/));
+      }
+    }
+    return cleanCopy
+  }
+
+  const isLastBeat = (abc, place = 1) => {
+    const part = cleanAbc(abc)[activePart(abc)]
+    if (part) return part.length === beats - place
+  };
+
   const getAbcOptions = abc => {
+    const getVoiceObject = abc => {
+      const cleanedAbc = cleanAbc(abc);
+      const getHarArr = abc => {
+        const song = [];
+        for (let i = 0; i < abc.soprano.length; i++) {
+          const beat = [];
+          for (let part in abc) {
+            if (abc[part][i]) beat.push(abc[part][i])
+          }
+          song.push(beat);
+        }
+        return song;
+      }
+      return {
+        melArr: cleanedAbc[activePart(abc)],
+        harArr: getHarArr(cleanedAbc),
+        beats: beats,
+        activeBeat: cleanedAbc[activePart(abc)].length % beats
+      }
+    }
+    let options
     switch (activePart(abc)) {
       case "soprano":
         const sop = new Soprano();
-        return sop.getOptions(getVoiceObject(abc));
+        options = sop.getOptions(getVoiceObject(abc));
+        break;
       case "alto":
         const alto = new Alto();
-        return alto.getOptions(getVoiceObject(abc));
+        options = alto.getOptions(getVoiceObject(abc));
+        break;
       case "tenor":
         const ten = new Tenor();
-        return ten.getOptions(getVoiceObject(abc));
+        options = ten.getOptions(getVoiceObject(abc));
+        break;
       case "bass":
         const bass = new Bass();
-        return bass.getOptions(getVoiceObject(abc));
+        options = bass.getOptions(getVoiceObject(abc));
+        break;
       default:
         console.error("'activePart' is not set correctly to an SATB part")
         break;
     }
+    if (isLastBeat(abc)) options = options.map(n => n + bpm);
+    return options
   }
-  
-  const getVoiceObject = abc => {
-    const getHarArr = abc => {
-      const song = [];
-      for (let i = 0; i < abc.soprano.length; i++) {
-        const beat = [];
-        for (let part in abc) {
-          if (abc[part][i]) beat.push(abc[part][i])
-        }
-        song.push(beat);
-      }
-      return song;
-    }
-    const voiceWithoutRests = abc[activePart(abc)].filter(note => note !== 'z');
-    return {
-      melArr: abc[activePart(abc)],
-      harArr: getHarArr(abc),
-      beats: beats,
-      activeBeat: voiceWithoutRests.length % beats
-    }
-  }
-  
-  const [abcOptions, setAbcOptions] = useState(() => {
-    return getAbcOptions(abc)
-  });
+
+  const [abcOptions, setAbcOptions] = useState(() => getAbcOptions(abc));
 
   const [activeAbc, setActiveAbc] = useState(abcOptions && abcOptions[0]);
 
@@ -102,13 +123,15 @@ function Home() {
     const primeBass = () => {
       const rests = [];
       for (let i = 0; i < beats; ++i) {
-        rests.push("z");
+        let rest = 'z';
+        if (i === beats - 1) rest += bpm;
+        rests.push(rest);
       }
       return rests;
     }
     let newArr = [...array];
     if (activePart(abc) === "tenor" && abc.tenor.length === 0) newArr = primeBass();
-    const indexOfZ = newArr.findIndex(note => note === "z");
+    const indexOfZ = newArr.findIndex(n => n.match(/z/));
     if (indexOfZ >= 0) {
       newArr[indexOfZ] = note;
       return newArr;
@@ -119,7 +142,7 @@ function Home() {
   }
 
   const saveNote = e => {
-    const newNote = e.target.value;
+    let newNote = e.target.value;
     if (activePart(abc)) {
       const newAbc = {
         ...abc,
@@ -129,6 +152,7 @@ function Home() {
       const options = getAbcOptions(newAbc)
       setAbc(() => newAbc)
       setAbcOptions(() => options)
+      setActiveAbc(() => options[0])
     } else console.log("Song is full, no note to add.");
   }
 
@@ -143,8 +167,10 @@ function Home() {
 
   const undoNote = () => {
     if (abc.previous) {
+      const options = getAbcOptions(abc.previous)
       setAbc(() => abc.previous)
-      setAbcOptions(() => getAbcOptions(abc.previous))
+      setAbcOptions(() => options)
+      setActiveAbc(() => options[0])
     }
   }
 
@@ -160,6 +186,10 @@ function Home() {
     setTimerId(() => (id));
     return cleanup;
   }, [abcOptions])
+
+  useEffect(() => {
+    localStorage.setItem('abc', JSON.stringify(abc))
+  }, [abc])
 
   return (
     <>
@@ -196,12 +226,14 @@ function Home() {
         ><GrUndo /></Button>
         {abcOptions ? <>
           <h2>Options</h2>
-          {abcOptions.map(note => <Button
+          {abcOptions.map(note => {
+          const cleanNote = note.replace(/[0-9]/, '')
+          return <Button
             key={note}
             value={note}
             onClick={saveNote}
             highlighted={note === activeAbc}
-          >{note}</Button>)}
+          >{cleanNote}</Button>})}
         </> : <p>You ran out of options! Click undo and choose a different note, or start over!</p>}
       </ButtonContainer>
     </>

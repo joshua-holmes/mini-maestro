@@ -15,7 +15,6 @@ box-shadow: 0 0 4px #999;
 background-position: center;
 transition: background 0.8s;
 font-weight: bold;
-text-transform: uppercase;
 animation-duration: 0.5s;
 animation-timing-function: ease-out;
 display: inline-flexbox;
