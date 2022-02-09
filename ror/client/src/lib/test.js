@@ -1,8 +1,2 @@
-import Soprano from "./soprano.js";
 
-const sop = new Soprano();
-const mel = ['A', 'B', 'C', 'D', 'E', 'F']
-const har = [['C,', 'e', "g'"]]
-
-// console.log("HAR", sop.analyzeHarmony(har, 13))
-console.log("RESULT", sop.melodicallyLimit(mel))
+console.log("BOTH", bass.getOptions({melArr: mel, harArr: har, beats: 3, activeBeat: 2}));

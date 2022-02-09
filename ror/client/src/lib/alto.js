@@ -1,6 +1,6 @@
-import Part from "./part.js";
+import Voice from "./voice.js";
 
-class Alto extends Part {
+class Alto extends Voice {
   constructor(scale, chordLibrary) {
     super(scale, chordLibrary)
     this.maxRange = "c";
