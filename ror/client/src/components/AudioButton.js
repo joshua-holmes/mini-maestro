@@ -3,7 +3,7 @@ import { useState } from "react";
 import Button from "./Button";
 
 
-function AudioButton({ visualObj }) {
+function AudioButton({ visualObj, disabled }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [midiBuffer, setMidiBuffer] = useState(new ABCJS.synth.CreateSynth());
   const handleClick = e => {
@@ -50,7 +50,7 @@ function AudioButton({ visualObj }) {
   }
 
   return (
-    <Button onClick={handleClick}>{isPlaying ? "⏹️" : "▶️"}</Button>
+    <Button onClick={handleClick} disabled={disabled}>{isPlaying ? "⏹️" : "▶️"}</Button>
   )
 }
 

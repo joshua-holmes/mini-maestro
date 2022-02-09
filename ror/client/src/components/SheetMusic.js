@@ -11,9 +11,9 @@ function SheetMusic({
   bpm,
   setVisualObj = function() {},
   onClick,
-  tempo = 180 
+  tempo = 120
 }) {
-
+  
   const joinNotes = (arr1, arr2) => {
     const returnedArr = [];
     const maxLength = Math.max(arr1.length, arr2.length);

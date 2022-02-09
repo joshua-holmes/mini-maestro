@@ -45,22 +45,33 @@ class Voice {
 
   //// COMBINES MAIN LIMITERS
   getOptions({melArr, harArr, beats, activeBeat}) {
-    const melodicOptions = this.melodicallyLimit(melArr, beats, activeBeat)
-    const harmonicOptions = this.harmonicallyLimit(harArr, beats, activeBeat)
+    // These lines are to get rid of 'z' found in the music.
+    // 'z' represents rests, but is not necessary for analysis.
+    const moddedMelArr = melArr.filter(note => note !== 'z');
+    let moddedHarArr = [...harArr];
+    if (moddedHarArr.length > 0) {
+      moddedHarArr = moddedHarArr.map(beat => (
+        beat.filter(note => note !== 'z')
+      ))
+    }
+    const melodicOptions = this.melodicallyLimit(moddedMelArr, beats, activeBeat);
+    const harmonicOptions = this.harmonicallyLimit(moddedHarArr, beats, activeBeat);
     return melodicOptions.filter(option => harmonicOptions.indexOf(option) >= 0)
+      .sort((a, b) => this.scale.indexOf(b) - this.scale.indexOf(a));
   }
   
   //// MAIN LIMITERS
   melodicallyLimit(melArr, beats, activeBeat) {
     let options = [...this.scale];
-    if (melArr.length === 0) return options
     options = this.rangeLimiter(options);
+    this.noteLimiter && (options = this.noteLimiter(options, beats, activeBeat, melArr))
+    if (melArr.length === 0) return options
     options = this.tritoneRunLimiter(options, melArr);
     options = this.tritoneSkipLimiter(options, melArr);
     options = this.largeSkipLimiter(options, melArr);
     // Optional limiters
     this.afterSkipLimiter && (options = this.afterSkipLimiter(options, melArr));
-    this.lastNoteLimiter && (options = this.lastNoteLimiter(options, beats, activeBeat, melArr))
+    
     return options;
   }
   harmonicallyLimit(harArr, beats, activeBeat) {
@@ -73,6 +84,8 @@ class Voice {
       (options = this.dissonantLimiter(options, harArr, activeBeat));
     this.parallelHarmonyLimiter &&
       (options = this.parallelHarmonyLimiter(options, harArr, activeBeat));
+    this.similarMotionLimiter &&
+      (options = this.similarMotionLimiter(options, harArr, activeBeat));
     return options;
   }
 
@@ -80,6 +93,7 @@ class Voice {
   // MELODIC SUB-LIMITERS
   // limits range to note specified in SATB classes, which extend from this
   rangeLimiter(options) {
+    
     const max = this.scale.indexOf(this.maxRange);
     const min = this.scale.indexOf(this.minRange);
     let newOptions = [...options];
@@ -164,21 +178,21 @@ class Voice {
   harmonyLimiter(options, harArr, activeBeat, beats) {
     let newOptions = [...options];
     const analysis = this.analyzeHarmony(harArr, beats);
-    newOptions = newOptions.filter(note => (
-      !!analysis[activeBeat].find(chord => {
+    newOptions = newOptions.filter(note => {
+      return !!analysis[activeBeat].find(chord => {
         const chordObj = this.chordLibrary.find(chordObj => chordObj.symbol === chord);
         return chordObj.makeup.indexOf(this.noteNum(note)) >= 0;
       })
-    ))
+    })
     return newOptions;
   }
-  // No parallel 5ths or octaves
+  // No parallel 5ths or octaves (4ths are ok)
   parallelHarmonyLimiter(options, harArr, activeBeat) {
     let newOptions = [...options];
     if (activeBeat > 0) {
       const currHarIndexes = harArr[activeBeat].map(n => this.scale.indexOf(n))
         .sort((a, b) => b - a);
-      const lastBeat = harArr[activeBeat - 1]
+      const lastBeat = harArr[activeBeat - 1];
       const lastHarIndexes = lastBeat.map(note => this.scale.indexOf(note))
         .sort((a, b) => b - a);
       const minIndex = Math.min(...lastHarIndexes);
@@ -186,7 +200,8 @@ class Voice {
       const perfectHarmonies = lastHarIndexes.map(note => {
         const num = this.noteNum(this.scale[note]);
         const isPerfect = note !== minIndex &&
-        (num === minNum || num === (minNum + 4 + 7) % 7);
+        (num === minNum || // octaves
+        num === (minNum + 4 + 7) % 7); // fifths
         if (isPerfect) return note;
       })
       const movement = perfectHarmonies.map((note, i) => {
@@ -198,6 +213,43 @@ class Voice {
         const indexOfNote = this.scale.indexOf(note);
         const invalidNotes = movement.map(change => minIndex + change)
         return invalidNotes.indexOf(indexOfNote) === -1;
+      })
+    }
+    return newOptions;
+  }
+  // No similar motion into parallel harmonies
+  similarMotionLimiter(options, harArr, activeBeat) {
+    let newOptions = [...options];
+    if (activeBeat > 0) {
+      const lastBeat = harArr[activeBeat - 1];
+      const lastHarIndexes = lastBeat.map(note => this.scale.indexOf(note))
+        .sort((a, b) => b - a);
+      const minIndex = lastHarIndexes[lastHarIndexes.length - 1];
+      const currHarIndexes = harArr[activeBeat].map(note => this.scale.indexOf(note))
+        .sort((a, b) => b - a);
+      const direction = [...lastHarIndexes].filter((note, i) => (
+        i !== lastHarIndexes.length - 1
+      )).map((note, i) => {
+        if (note - currHarIndexes[i] > 0) return -1; // decending
+        if (note - currHarIndexes[i] < 0) return 1; // ascending
+        return 0; // remaining the same
+      });
+      newOptions = newOptions.filter(note => {
+        const currIndex = this.scale.indexOf(note)
+        const currNum = this.noteNum(note);
+        const difference = currIndex - minIndex
+        const currDirection = difference/Math.abs(difference)
+        const perfectHarmonies = currHarIndexes.map(note => {
+          const num = this.noteNum(this.scale[note]);
+          const isPerfect = note !== currIndex &&
+          (num === currNum || // octaves
+          num === (currNum + 4 + 7) % 7); // fifths
+          if (isPerfect) return note;
+        })
+        const isSimilarIntoParallel = !!perfectHarmonies.find((note, i) => {
+          if (note) return currDirection === direction[i];
+        });
+        return !isSimilarIntoParallel
       })
     }
     return newOptions;

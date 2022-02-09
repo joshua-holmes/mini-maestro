@@ -28,9 +28,10 @@ class Bass extends Voice {
     return newOptions
   }
   // Last note in bass must be a C
-  lastNoteLimiter(options, beats, activeBeat) {
+  noteLimiter(options, beats, activeBeat) {
     let newOptions = [...options];
-    if (activeBeat === beats - 1) {
+    
+    if (activeBeat === beats - 1 || activeBeat === 0) {
       newOptions = newOptions.filter(note => this.noteNum(note) === 0);
     }
     return newOptions

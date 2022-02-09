@@ -8,9 +8,10 @@ class Soprano extends Voice {
     // Disables voicing limiter for soprano
     this.voicingLimiter = null;
     this.parallelHarmonyLimiter = null;
+    this.similarMotionLimiter = null;
   }
   // Last note in soprano must be a C if second to last note is B
-  lastNoteLimiter(options, beats, activeBeat, melArr) {
+  noteLimiter(options, beats, activeBeat, melArr) {
     let newOptions = [...options];
     const lastNote = melArr[melArr.length - 1];
     if (activeBeat === beats - 1 && this.noteNum(lastNote) === 6) {

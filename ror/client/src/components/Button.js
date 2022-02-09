@@ -37,13 +37,14 @@ justify-content: center;
 }
 `
 
-function Button({ children, onClick, value, highlighted, style }) {
+function Button({ children, onClick, value, highlighted, style, disabled }) {
   
   return (
     <StyledButton
       style={{...style, animationName: highlighted ? "highlight" : ""}}
       value={value}
       onClick={onClick}
+      disabled={disabled}
     >{children}</StyledButton>
   )
 }
