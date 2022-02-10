@@ -28,8 +28,8 @@ function NavBar({ isLoggedIn, setUser }) {
             <LinkContainer to="/create-new">
               <Nav.Link>Create New</Nav.Link>
             </LinkContainer>
-            <LinkContainer to="/my-tunes">
-              <Nav.Link>My Tunes</Nav.Link>
+            <LinkContainer to="/how-it-works">
+              <Nav.Link>How It Works</Nav.Link>
             </LinkContainer>
             <LinkContainer to="/about-me">
               <Nav.Link>About Me</Nav.Link>
@@ -41,6 +41,9 @@ function NavBar({ isLoggedIn, setUser }) {
             </LinkContainer>
             <LinkContainer to="/sign-up">
               <Nav.Link>Sign Up</Nav.Link>
+            </LinkContainer>
+            <LinkContainer to="/my-tunes">
+              <Nav.Link>My Tunes</Nav.Link>
             </LinkContainer>
             <LinkContainer to="/logout">
               <Nav.Link>Logout</Nav.Link>

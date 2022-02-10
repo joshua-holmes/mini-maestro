@@ -2,19 +2,9 @@ import Container from "react-bootstrap/Container";
 import styled from "styled-components";
 import { Link } from "react-router-dom";
 import RickRolls from "./RickRolls";
+import Title from "./Title";
+import SubTitle from "./SubTitle";
 
-const Title = styled.h1`
-text-align: center;
-font-weight: lighter;
-margin: 40px 0;
-font-size: 4em;
-`
-const SubTitle = styled.h2`
-text-align: center;
-font-weight: lighter;
-margin: 40px 0;
-font-size: 2em;
-`
 const Spacer = styled.div`
 margin-bottom: 30px;
 `
