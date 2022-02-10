@@ -1,5 +1,6 @@
 import Container from "react-bootstrap/Container";
 import Title from "./Title";
+import Spacer from "./Spacer";
 
 function HowItWorks() {
   
@@ -28,6 +29,7 @@ function HowItWorks() {
         <li>Large skips: A voice may not skip in intervals greater than an octave.</li>
         <li>After skips: After a voice skips in any direction, it must then either step in the opposite direction or remain on the same note (unison).</li>
       </ul>
+      <Spacer />
     </Container>
   )
 }

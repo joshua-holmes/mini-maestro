@@ -4,10 +4,7 @@ import { Link } from "react-router-dom";
 import RickRolls from "./RickRolls";
 import Title from "./Title";
 import SubTitle from "./SubTitle";
-
-const Spacer = styled.div`
-margin-bottom: 30px;
-`
+import Spacer from './Spacer';
 
 function Home() {
   return (

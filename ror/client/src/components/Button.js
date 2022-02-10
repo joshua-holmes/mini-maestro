@@ -3,7 +3,6 @@ import styled from "styled-components";
 const StyledButton = styled.button`
 color: ${({disabled}) => disabled ? "#aaa" : "#333"};
 background-color: ${({disabled}) => disabled ? "lightgray" : "#fceade"};
-width: 100px;
 display: block;
 border: 1px solid ${({disabled}) => disabled ? "lightgray" : "#888"};
 border-radius: 12px;

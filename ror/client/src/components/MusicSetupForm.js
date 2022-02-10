@@ -15,7 +15,6 @@ function MusicSetupForm({ songDetails, onChange, isEditable }) {
           value={title}
           onChange={onChange}
           name="title"
-          color="secondary"
         />
       </Form.Group>
       {isEditable ? 
