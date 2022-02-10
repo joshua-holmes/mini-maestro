@@ -15,6 +15,7 @@ import MusicSetupForm from './MusicSetupForm';
 const ButtonContainer = styled.div`
 position: absolute;
 bottom: 0%;
+margin: 30px 0;
 `
 
 function CreateMusic() {
@@ -31,9 +32,11 @@ function CreateMusic() {
   const [visualObj, setVisualObj] = useState();
   const [timerId, setTimerId] = useState(null);
   
-
-  const measures = 2;
-  const bpm = 2; // Beats per measure
+  const [songDetails, setSongDetails] = useState(
+    JSON.parse(localStorage.getItem("songDetails")) ||
+    {measures: 4, bpm: 4, title: "My Piece's Title"}
+  );
+  const {measures, bpm, title} = songDetails;
   const beats = measures * bpm - bpm + 1;
 
   const countNotes = string => {
@@ -181,6 +184,15 @@ function CreateMusic() {
     setActiveAbc(() => options[0])
   }
 
+  const handleChange = e => {
+    const detailsObj = {
+      ...songDetails,
+      [e.target.name]: e.target.value
+    }
+    localStorage.setItem("songDetails", JSON.stringify(detailsObj))
+    setSongDetails(detailsObj);
+  }
+
   useEffect(() => {
     let count = 0;
     const iterate = () => {
@@ -202,7 +214,6 @@ function CreateMusic() {
     <>
       {/* For playing music */}
       <SheetMusic
-        title="title"
         meter={`${bpm}/4`}
         soprano={abc.soprano}
         alto={abc.alto}
@@ -213,7 +224,7 @@ function CreateMusic() {
       />
       {/* For displaying music */}
       <SheetMusic
-        title="title"
+        title={title}
         meter={`${bpm}/4`}
         soprano={partPlusActiveNote("soprano")}
         alto={partPlusActiveNote("alto")}
@@ -223,6 +234,26 @@ function CreateMusic() {
       />
     </>
   )
+
+  const renderOptions = () => {
+    if (!activePart(abc)) {
+      return <h5>Your piece is finished!</h5>
+    } else if (!abcOptions) {
+      return null;
+    } else if (abcOptions.length === 0) {
+      return <h5>Out of options! Click undo and choose a different note or start over.</h5>
+    } else {
+      return abcOptions.map(note => {
+        const cleanNote = note.replace(/[0-9]/, '')
+        return <Button
+          key={note}
+          value={note}
+          onClick={saveNote}
+          highlighted={note === activeAbc}
+        >{cleanNote}</Button>
+      })
+    }
+  }
   const lg = window.innerWidth > 991
 
   return (
@@ -230,19 +261,13 @@ function CreateMusic() {
       {!lg ? sheetMusic : null}
       <Container>
         {lg ? sheetMusic : null}
-        {/* <MusicSetupForm /> */}
+        <MusicSetupForm
+          onChange={handleChange}
+          songDetails={songDetails}
+          isEditable={abc.soprano.length === 0}
+        />
         <ButtonContainer>
-          {abcOptions ? <>
-            <h2>Options</h2>
-            {abcOptions.map(note => {
-            const cleanNote = note.replace(/[0-9]/, '')
-            return <Button
-              key={note}
-              value={note}
-              onClick={saveNote}
-              highlighted={note === activeAbc}
-            >{cleanNote}</Button>})}
-          </> : <p>You ran out of options! Click undo and choose a different note, or start over!</p>}
+          {renderOptions()}
           <h2>Controls</h2>
           {visualObj && <AudioButton
             disabled={!abc.previous}

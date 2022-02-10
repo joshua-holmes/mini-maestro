@@ -57,7 +57,7 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
   return (
     <>
       <div id="paper" />
-      <div id="audio"></div>
+      <div id="audio" />
     </>
   )
 }

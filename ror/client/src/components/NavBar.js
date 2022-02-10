@@ -16,7 +16,7 @@ function NavBar({ isLoggedIn, setUser }) {
     <Navbar collapseOnSelect expand="lg" bg="colorOne" variant="light">
       <Container>
         <LinkContainer to="/">
-          <Navbar.Brand>React-Bootstrap</Navbar.Brand>
+          <Navbar.Brand>Mini Maestro</Navbar.Brand>
         </LinkContainer>
         
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />

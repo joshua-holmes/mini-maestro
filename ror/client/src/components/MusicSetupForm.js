@@ -1,28 +1,52 @@
 import Form from "react-bootstrap/Form"
 import Button from "./Button";
 
-function MusicSetupForm() {
+function MusicSetupForm({ songDetails, onChange, isEditable }) {
+
+  const {bpm, measures, title} = songDetails
   
   return (
     <Form>
-      <Form.Group className="mb-3" controlId="formBasicEmail">
-        <Form.Label>Email address</Form.Label>
-        <Form.Control type="email" placeholder="Enter email" />
-        <Form.Text className="text-muted">
-          We'll never share your email with anyone else.
-        </Form.Text>
+      <Form.Group className="mb-3">
+        <Form.Label>Title of your piece</Form.Label>
+        <Form.Control
+          type="text"
+          placeholder="Enter a title"
+          value={title}
+          onChange={onChange}
+          name="title"
+          color="secondary"
+        />
       </Form.Group>
-
-      <Form.Group className="mb-3" controlId="formBasicPassword">
-        <Form.Label>Password</Form.Label>
-        <Form.Control type="password" placeholder="Password" />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="formBasicCheckbox">
-        <Form.Check type="checkbox" label="Check me out" />
-      </Form.Group>
-      <Button variant="primary" type="submit">
-        Submit
-      </Button>
+      {isEditable ? 
+        <>
+          <Form.Group className="mb-3">
+            <Form.Label>Number of measures</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Enter number"
+              value={measures}
+              onChange={onChange}
+              name="measures"
+              max={8}
+              min={2}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Number of beats per measure</Form.Label>
+            <Form.Control
+              type="number"
+              placeholder="Enter number"
+              value={bpm}
+              onChange={onChange}
+              name="bpm"
+              max={4}
+              min={2}
+            />
+          </Form.Group>
+        </>
+      : null}
+      
     </Form>
   )
 }

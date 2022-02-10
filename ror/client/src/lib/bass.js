@@ -4,7 +4,7 @@ class Bass extends Voice {
   constructor(scale, chordLibrary) {
     super(scale, chordLibrary)
     this.maxRange = "C";
-    this.minRange = "F,,";
+    this.minRange = "C,,";
     // Disabling this limiter
     this.afterSkipLimiter = null;
   }
