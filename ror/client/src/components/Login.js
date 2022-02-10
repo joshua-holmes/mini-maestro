@@ -1,23 +1,24 @@
 import Container from "react-bootstrap/Container";
-import Form from "react-bootstrap/Form"
-// import styled from "styled-components";
+import Form from "react-bootstrap/Form";
+import Alert from "react-bootstrap/Alert";
 import SubTitle from "./SubTitle";
 import Spacer from "./Spacer";
 import styled from "styled-components";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Button from "./Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const StyledLink = styled(Link)`
 margin: 15px;
 `
 
-function Login() {
+function Login({ isLoggedIn, setUser }) {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    password_confirmation: "",
-  })
+  });
+  const [errors, setErrors] = useState([]);
+  let navigate = useNavigate();
 
   const handleChange = e => {
     setFormData({
@@ -25,15 +26,36 @@ function Login() {
       [e.target.name]: e.target.value
     })
   }
-  
-  const handleSubmit = e => {
+
+  const handleLogin = (e, formData) => {
     e.preventDefault();
-    console.log(e);
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(formData),
+    }
+    fetch("/api/login", config)
+    .then(r => {
+      if (r.ok) return r.json().then(data => { setUser(data) })
+      else return r.json().then(data => setErrors(data.errors))
+    }).catch(error => console.error("ITS GONNA BE A BUMPY RIDE ==>", error))
   }
+  
+  useEffect(() => {
+    if (isLoggedIn) {
+      const savedPath = localStorage.getItem("savedPath");
+      localStorage.removeItem("savedPath");
+      navigate(savedPath || "/");
+    }
+  }, [isLoggedIn])
+
   return (
     <Container>
       <SubTitle>Login</SubTitle>
-      <Form onSubmit={handleSubmit}>
+      <Form onSubmit={e => handleLogin(e, formData)}>
         <Form.Group className="mb-3">
           <Form.Label>Username</Form.Label>
           <Form.Control
@@ -57,6 +79,8 @@ function Login() {
         <Button type="submit">Login</Button>
         <StyledLink to="/sign-up">Don't have an account?</StyledLink>
       </Form>
+      <Spacer />
+      {errors.map(err => <Alert key={err} variant="danger">{err}</Alert>)}
       <Spacer />
     </Container>
   )

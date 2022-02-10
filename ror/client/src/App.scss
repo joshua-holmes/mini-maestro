@@ -3,7 +3,8 @@ $theme-colors: (
   "colorTwo": #ff8a5b,
   "colorThree": #fceade,
   "colorFour": white,
-  "colorFive": #ea526f
+  "colorFive": #ea526f,
+  "danger": #dc3545
 );
 
 @import "~bootstrap/scss/bootstrap";

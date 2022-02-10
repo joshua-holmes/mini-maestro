@@ -10,15 +10,23 @@ import Bass from "../lib/bass";
 import styled from 'styled-components';
 import { cloneDeep } from "lodash";
 import Container from 'react-bootstrap/Container';
+import Alert from "react-bootstrap/Alert";
 import MusicSetupForm from './MusicSetupForm';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ButtonContainer = styled.div`
 position: absolute;
 bottom: 0%;
-margin: 30px 0;
+margin: 20px 0;
 `
 
-function CreateMusic() {
+const PlainLink = styled(Link)`
+text-decoration: inherit;
+color: inherit;
+`
+
+function CreateMusic({ user }) {
+  const navigate = useNavigate();
   const defaultAbc = {
     soprano: [],
     alto: [],
@@ -256,8 +264,20 @@ function CreateMusic() {
   }
   const lg = window.innerWidth > 991
 
+  const handleNav = path => {
+    localStorage.setItem("savedPath", window.location.pathname);
+    navigate(path);
+  }
+
   return (
     <>
+      {user.username ? null :
+        <Alert variant='colorTwo'>
+          <Alert.Link onClick={() => handleNav("/login")}>Login</Alert.Link> or {" "}
+          <Alert.Link onClick={() => handleNav("/sign-up")}>create an account</Alert.Link>
+          {" "}to save your tune! Your piece will stay here until you get back!
+        </Alert>
+      }
       {!lg ? sheetMusic : null}
       <Container>
         {lg ? sheetMusic : null}
@@ -268,20 +288,21 @@ function CreateMusic() {
         />
         <ButtonContainer>
           {renderOptions()}
-          <h2>Controls</h2>
-          {visualObj && <AudioButton
-            disabled={!abc.previous}
+          <div />
+          {!visualObj ? null : <AudioButton
             visualObj={visualObj}
+            display={abc.previous}
           />}
-          <Button 
-            variant="primary"
-            size="lg"
-            onClick={undoNote}
-            disabled={!abc.previous}
-          >
-            <GrUndo />
-          </Button>
-          <Button onClick={reset}>Reset</Button>
+          {!abc.previous || !visualObj ? null : <>
+            <Button 
+              variant="primary"
+              size="lg"
+              onClick={undoNote}
+            >
+              <GrUndo />
+            </Button>
+            <Button onClick={reset}>Reset</Button>
+          </>}
         </ButtonContainer>
       </Container>
     </>

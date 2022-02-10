@@ -1,15 +1,19 @@
 import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
-import NavDropdown from 'react-bootstrap/NavDropdown';
 import { LinkContainer } from 'react-router-bootstrap';
+import { Navigate, useNavigate } from "react-router-dom";
 
-function NavBar({ isLoggedIn, setUser }) {
+function NavBar({ setUser }) {
+
+  const navigate = useNavigate();
 
   const logout = () => {
     fetch("/api/logout", {method: "DELETE"})
-    .then(() => setUser())
-    .catch(error => console.error("BLIMEY!! Something went wrong... ==>", error))
+    .then(r => {
+      if (r.ok) { setUser({}) }
+      else { console.error("ahhh") }
+    }).catch(error => console.error("BLIMEY!! Something went wrong... ==>", error))
   }
 
   return (
@@ -45,8 +49,8 @@ function NavBar({ isLoggedIn, setUser }) {
             <LinkContainer to="/my-tunes">
               <Nav.Link>My Tunes</Nav.Link>
             </LinkContainer>
-            <LinkContainer to="/logout">
-              <Nav.Link>Logout</Nav.Link>
+            <LinkContainer to="/">
+              <Nav.Link onClick={logout}>Logout</Nav.Link>
             </LinkContainer>
           </Nav>
         </Navbar.Collapse>
