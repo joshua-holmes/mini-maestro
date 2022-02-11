@@ -12,17 +12,12 @@ import { cloneDeep } from "lodash";
 import Container from 'react-bootstrap/Container';
 import Alert from "react-bootstrap/Alert";
 import MusicSetupForm from './MusicSetupForm';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const ButtonContainer = styled.div`
 position: absolute;
 bottom: 0%;
 margin: 20px 0;
-`
-
-const PlainLink = styled(Link)`
-text-decoration: inherit;
-color: inherit;
 `
 
 function CreateMusic({ user }) {
@@ -34,17 +29,19 @@ function CreateMusic({ user }) {
     bass: [],
     previous: null
   }
+  const songDetailsDefault = {measures: 4, bpm: 4, title: "My Piece's Title", tempo: 120}
   const savedAbc = JSON.parse(localStorage.getItem('abc'))
   const [abc, setAbc] = useState(savedAbc || defaultAbc);
+  const [errors, setErrors] = useState([]);
   
   const [visualObj, setVisualObj] = useState();
   const [timerId, setTimerId] = useState(null);
   
   const [songDetails, setSongDetails] = useState(
-    JSON.parse(localStorage.getItem("songDetails")) ||
-    {measures: 4, bpm: 4, title: "My Piece's Title"}
+    JSON.parse(localStorage.getItem("songDetails")) || songDetailsDefault
   );
-  const {measures, bpm, title} = songDetails;
+
+  const {measures, bpm, title, tempo} = songDetails;
   const beats = measures * bpm - bpm + 1;
 
   const countNotes = string => {
@@ -126,6 +123,8 @@ function CreateMusic({ user }) {
     return options
   }
 
+  if (!activePart(abc)) clearInterval(timerId)
+
   const [abcOptions, setAbcOptions] = useState(() => getAbcOptions(abc));
 
   const [activeAbc, setActiveAbc] = useState(abcOptions && abcOptions[0]);
@@ -167,14 +166,17 @@ function CreateMusic({ user }) {
     } else console.log("Song is full, no note to add.");
   }
 
-  const partPlusActiveNote = part => {
-    if (!activePart(abc)) {
-      clearInterval(timerId);
-      console.log("Song is full, stopping timer.");
+  const abcPlusActive = (() => {
+    if (!activePart(abc)) return abc;
+    const isLastNote = abc[activePart(abc)].length === beats
+    const backupNote = isLastNote ? `z${bpm}` : 'z'
+    const needsRest = !activeAbc && activePart(abc) === "tenor"
+    const chosenNote = needsRest ? backupNote : activeAbc
+    return {
+      ...abc,
+      [activePart(abc)]: appendNoteToArray(chosenNote, abc[activePart(abc)])
     }
-    if (activePart(abc) !== part) return abc[part]
-    else return appendNoteToArray(activeAbc, abc[part])
-  }
+  })()
 
   const undoNote = () => {
     if (abc.previous) {
@@ -193,12 +195,86 @@ function CreateMusic({ user }) {
   }
 
   const handleChange = e => {
+    const key = e.target.name;
+    let value = e.target.value;
+    if (key === "tempo" && value > 360) {
+      value = songDetails.tempo;
+    }
     const detailsObj = {
       ...songDetails,
-      [e.target.name]: e.target.value
+      [key]: value
     }
     localStorage.setItem("songDetails", JSON.stringify(detailsObj))
     setSongDetails(detailsObj);
+  }
+
+
+
+  const lg = window.innerWidth > 991
+
+  const handleNav = path => {
+    localStorage.setItem("savedPath", window.location.pathname);
+    navigate(path);
+  }
+
+  const getRawAbc = abc => {
+    const joinNotes = (arr1, arr2) => {
+      const returnedArr = [];
+      const maxLength = Math.max(arr1.length, arr2.length);
+      for (let i = 0; i < maxLength; i++) {
+        if (arr1[i] && arr2[i]) {
+          returnedArr.push(`[${arr1[i]}${arr2[i]}]`)
+        } else {
+          returnedArr.push(arr1[i] || arr2[i])
+        }
+      }
+      return returnedArr;
+    }
+    const abcStringify = abcArray => {
+      let abcString = "";
+      abcArray.forEach((note, index) => {
+        if (index % bpm === 0 && index !== 0) abcString += " |"
+        abcString += ` ${note}`
+      })
+      return abcString;
+    }
+    const trebleClef = abcStringify(joinNotes(abc.soprano, abc.alto));
+    const bassClef = abcStringify(joinNotes(abc.tenor, abc.bass));
+  
+    return `
+X:1
+T:${title || ""}
+M:${bpm}/4
+L:1/4
+Q:${tempo > 40 ? tempo : 40}
+K:C
+${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${!!trebleClef ? "[V:T]" + trebleClef + " |]\n" : ""}${!!bassClef ? "[V:B]" + bassClef + " |]\n" : ""}`
+  }
+
+  const handleSave = () => {
+    const config = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({
+        abc: getRawAbc(abc)
+      }),
+    }
+    fetch("/api/tunes", config)
+    .then(r => {
+      if (r.ok) {
+        r.json().then(() => {
+          localStorage.removeItem("songDetails");
+          localStorage.removeItem("abc");
+          navigate("/my-tunes");
+        })
+      } else {
+        r.json().then(err => setErrors(err.errors));
+      }
+    })
+    .catch(error => console.error("The unthinkable has happened... ==>", error))
   }
 
   useEffect(() => {
@@ -222,33 +298,26 @@ function CreateMusic({ user }) {
     <>
       {/* For playing music */}
       <SheetMusic
-        meter={`${bpm}/4`}
-        soprano={abc.soprano}
-        alto={abc.alto}
-        tenor={abc.tenor}
-        bass={abc.bass}
         setVisualObj={setVisualObj}
-        bpm={bpm}
+        rawAbc={getRawAbc(abc)}
       />
       {/* For displaying music */}
       <SheetMusic
-        title={title}
-        meter={`${bpm}/4`}
-        soprano={partPlusActiveNote("soprano")}
-        alto={partPlusActiveNote("alto")}
-        tenor={partPlusActiveNote("tenor")}
-        bass={partPlusActiveNote("bass")}
-        bpm={bpm}
+        rawAbc={getRawAbc(abcPlusActive)}
       />
     </>
   )
 
+  const renderSuccessMessage = () => (
+    <><h5>Your piece is finished!{" "}
+    {user.username ? <>Click 'Save' to save your piece!</> :
+    <><a href="#" onClick={() => handleNav("/login")}>Login</a> or 
+    <a href="#" onClick={() => handleNav("/sign-up")}>create an account</a>{" "}
+    to save it!</>}</h5></>
+  )
+
   const renderOptions = () => {
-    if (!activePart(abc)) {
-      return <h5>Your piece is finished!</h5>
-    } else if (!abcOptions) {
-      return null;
-    } else if (abcOptions.length === 0) {
+    if (abcOptions.length === 0) {
       return <h5>Out of options! Click undo and choose a different note or start over.</h5>
     } else {
       return abcOptions.map(note => {
@@ -262,15 +331,10 @@ function CreateMusic({ user }) {
       })
     }
   }
-  const lg = window.innerWidth > 991
-
-  const handleNav = path => {
-    localStorage.setItem("savedPath", window.location.pathname);
-    navigate(path);
-  }
 
   return (
     <>
+      {errors.map(err => <Alert key={err} variant="danger">{err}</Alert>)}
       {user.username ? null :
         <Alert variant='colorTwo'>
           <Alert.Link onClick={() => handleNav("/login")}>Login</Alert.Link> or {" "}
@@ -287,7 +351,8 @@ function CreateMusic({ user }) {
           isEditable={abc.soprano.length === 0}
         />
         <ButtonContainer>
-          {renderOptions()}
+          {activePart(abc) ? null : renderSuccessMessage()}
+          {activePart(abc) && abcOptions ? renderOptions() : null}
           <div />
           {!visualObj ? null : <AudioButton
             visualObj={visualObj}
@@ -302,6 +367,8 @@ function CreateMusic({ user }) {
               <GrUndo />
             </Button>
             <Button onClick={reset}>Reset</Button>
+            {user.username && !activePart(abc) 
+            ? <Button onClick={handleSave}>Save</Button> : null}
           </>}
         </ButtonContainer>
       </Container>

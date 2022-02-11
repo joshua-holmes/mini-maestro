@@ -3,7 +3,15 @@ import Button from "./Button";
 
 function MusicSetupForm({ songDetails, onChange, isEditable }) {
 
-  const {bpm, measures, title} = songDetails
+  const {bpm, measures, title, tempo} = songDetails
+
+  const renderOptions = (min, max) => {
+    const options = [];
+    for (let i = min; i <= max; i++) {
+      options.push(<option key={i} value={i}>{i}</option>)
+    }
+    return options;
+  }
   
   return (
     <Form>
@@ -17,31 +25,41 @@ function MusicSetupForm({ songDetails, onChange, isEditable }) {
           name="title"
         />
       </Form.Group>
+      <Form.Group className="mb-3">
+        <Form.Label>Tempo</Form.Label>
+        <Form.Control
+          type="number"
+          placeholder="Enter a number"
+          value={tempo}
+          onChange={onChange}
+          name="tempo"
+        />
+      </Form.Group>
       {isEditable ? 
         <>
           <Form.Group className="mb-3">
             <Form.Label>Number of measures</Form.Label>
-            <Form.Control
+            <Form.Select
               type="number"
-              placeholder="Enter number"
+              placeholder="Select number"
               value={measures}
               onChange={onChange}
               name="measures"
-              max={8}
-              min={2}
-            />
+            >
+              {renderOptions(2, 8)}
+            </Form.Select>
           </Form.Group>
           <Form.Group className="mb-3">
             <Form.Label>Number of beats per measure</Form.Label>
-            <Form.Control
+            <Form.Select
               type="number"
-              placeholder="Enter number"
+              placeholder="Select number"
               value={bpm}
               onChange={onChange}
               name="bpm"
-              max={4}
-              min={2}
-            />
+            >
+              {renderOptions(2, 4)}
+            </Form.Select>
           </Form.Group>
         </>
       : null}
