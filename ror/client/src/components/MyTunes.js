@@ -6,8 +6,9 @@ import ListGroup from "react-bootstrap/ListGroup";
 import { TrashFill } from "react-bootstrap-icons";
 import Button from "./Button";
 import SubTitle from "./SubTitle";
+import Spacer from "./Spacer";
 
-const Clicker = styled.div`
+const Clicker = styled(Link)`
 position: absolute;
 width: 75%;
 height: 100%;
@@ -21,7 +22,7 @@ cursor: pointer;
 `
 
 function MyTunes({ userState }) {
-  let array = ["test", "these", "lists", "so", "they", "look", "good"]
+
   const [user, setUser] = userState;
 
   const handleSelect = () => {
@@ -44,11 +45,13 @@ function MyTunes({ userState }) {
   return (
     <Container>
       <Title>My Tunes</Title>
+      <p>Here is where you can view and edit your tunes. Please keep in mind that the only way to edit tunes is using ABC Notation in the text field below. Feel free to "fiddle" around with it! If you need help, <a target="_blank" href="https://abcnotation.com/">ABC Notation's official website</a> is a great resource!</p>
+      <Spacer />
       <ListGroup>
         {!!user.username && user.tunes.length ? user.tunes.map(tune => 
         <ListGroup.Item key={tune.id}>
           {tune.abc.match(/T:.+/)[0].slice(2)}
-          <Clicker onClick={handleSelect}></Clicker>
+          <Clicker to={`/my-tunes/${tune.id}`}></Clicker>
           <Button
             style={{float: "right", margin: "auto", padding: "inherit"}}
             color="#dc3545"
@@ -61,6 +64,7 @@ function MyTunes({ userState }) {
           <Link to="/create-new">Create one here!</Link></SubTitle>
         }
       </ListGroup>
+      <Spacer />
     </Container>
   )
 }

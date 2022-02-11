@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const StyledButton = styled.button`
-color: ${({disabled}) => disabled ? "#aaa" : "#333"};
+color: ${({disabled, textColor}) => disabled ? "#aaa" : textColor || "#333"};
 background-color: ${({disabled, color}) => {
   if (disabled) return "lightgray"
   if (color) return color
@@ -41,7 +41,7 @@ justify-content: center;
 }
 `
 
-function Button({ children, onClick, value, highlighted, style, disabled, type, display = true, color, hoverColor }) {
+function Button({ children, onClick, value, highlighted, style, disabled, type, display = true, color, hoverColor, textColor }) {
   
   return (
     <StyledButton
@@ -52,6 +52,7 @@ function Button({ children, onClick, value, highlighted, style, disabled, type, 
       type={type}
       color={color}
       hoverColor={hoverColor}
+      textColor={textColor}
     >{children}</StyledButton>
   )
 }

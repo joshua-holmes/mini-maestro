@@ -8,11 +8,13 @@ function SheetMusic({
 }) {
 
   useEffect(() => {
-    setVisualObj(ABCJS.renderAbc("paper", rawAbc, {
-      responsive: "resize",
-      clickListener: onClick,
-      lineBreaks: [3, 7],
-    })[0])
+    if (rawAbc) {
+      setVisualObj(ABCJS.renderAbc("paper", rawAbc, {
+        responsive: "resize",
+        clickListener: onClick,
+        lineBreaks: [3, 7],
+      })[0])
+    }
   }, [rawAbc])
 
   return (

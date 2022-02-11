@@ -8,11 +8,14 @@ import AboutMe from './components/AboutMe';
 import Signup from './components/Signup';
 import Login from './components/Login';
 import MyTunes from './components/MyTunes';
+import Tune from './components/Tune';
+import NoMatch from './components/NoMatch';
 import { useEffect, useState } from 'react';
 
 function App() {
 
   const [user, setUser] = useState({})
+  const isLoggedIn = !!user.username;
 
   useEffect(() => {
     fetch("/api/me")
@@ -23,7 +26,7 @@ function App() {
   
   return (
     <>
-      <NavBar setUser={setUser} />
+      <NavBar setUser={setUser} isLoggedIn={isLoggedIn} />
       <Routes>
         <Route path="/" element={<Home firstName={user.first_name} />}/>
         <Route path="/create-new" element={<CreateMusic userState={[user, setUser]} />}/>
@@ -34,9 +37,9 @@ function App() {
           isLoggedIn={!!user.username}
           setUser={setUser}/>}
         />
-        <Route path="/my-tunes" element={<MyTunes userState={[user, setUser]} />}>
-          <Route path="/:id" element={<Tune userState={[user, setUser]} />} />
-        </Route>
+        <Route path="/my-tunes" element={<MyTunes userState={[user, setUser]} />}/>
+        <Route path="/my-tunes/:id" element={<Tune userState={[user, setUser]} />} />
+        <Route path="*" element={<NoMatch />}/>
       </Routes>
     </>
   );

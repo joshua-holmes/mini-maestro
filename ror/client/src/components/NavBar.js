@@ -3,7 +3,7 @@ import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import { LinkContainer } from 'react-router-bootstrap';
 
-function NavBar({ setUser }) {
+function NavBar({ setUser, isLoggedIn }) {
 
   const logout = () => {
     fetch("/api/logout", {method: "DELETE"})
@@ -37,18 +37,23 @@ function NavBar({ setUser }) {
             </LinkContainer>
           </Nav>
           <Nav>
-            <LinkContainer to="/login">
-              <Nav.Link>Login</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/sign-up">
-              <Nav.Link>Sign Up</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/my-tunes">
-              <Nav.Link>My Tunes</Nav.Link>
-            </LinkContainer>
-            <LinkContainer to="/">
-              <Nav.Link onClick={logout}>Logout</Nav.Link>
-            </LinkContainer>
+            {isLoggedIn ? null : <>
+              <LinkContainer to="/login">
+                <Nav.Link>Login</Nav.Link>
+              </LinkContainer>
+              <LinkContainer to="/sign-up">
+                <Nav.Link>Sign Up</Nav.Link>
+              </LinkContainer>
+            </>}
+            {!isLoggedIn ? null : <>
+              <LinkContainer to="/my-tunes">
+                <Nav.Link>My Tunes</Nav.Link>
+              </LinkContainer>
+              <LinkContainer to="/">
+                <Nav.Link onClick={logout}>Logout</Nav.Link>
+              </LinkContainer>
+            </>}
+            
           </Nav>
         </Navbar.Collapse>
       </Container>
