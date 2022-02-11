@@ -2,7 +2,11 @@ import styled from "styled-components";
 
 const StyledButton = styled.button`
 color: ${({disabled}) => disabled ? "#aaa" : "#333"};
-background-color: ${({disabled}) => disabled ? "lightgray" : "#fceade"};
+background-color: ${({disabled, color}) => {
+  if (disabled) return "lightgray"
+  if (color) return color
+  return "#fceade"
+}};
 display: block;
 border: 1px solid ${({disabled}) => disabled ? "lightgray" : "#888"};
 border-radius: 12px;
@@ -19,9 +23,9 @@ animation-timing-function: ease-out;
 display: inline-flexbox;
 justify-content: center;
 &:hover {
-  ${({disabled}) => disabled ? "" : `
-  background:#25ced1 radial-gradient(circle, transparent 1%, #25ced1 1%) center/15000%;
-  border-color: #25ced1;
+  ${({disabled, hoverColor}) => disabled ? "" : `
+  background:${hoverColor || "#25ced1"} radial-gradient(circle, transparent 1%, ${hoverColor || "#25ced1"} 1%) center/15000%;
+  border-color: ${hoverColor || "#25ced1"};
   color: white;
   `}
 }
@@ -37,16 +41,17 @@ justify-content: center;
 }
 `
 
-function Button({ children, onClick, value, highlighted, style, disabled, type, display = true }) {
+function Button({ children, onClick, value, highlighted, style, disabled, type, display = true, color, hoverColor }) {
   
   return (
     <StyledButton
-      style={{...style, animationName: highlighted ? "highlight" : ""}}
+      style={{...style, animationName: highlighted ? "highlight" : "", display: display ? "" : "none"}}
       value={value}
       onClick={onClick}
       disabled={disabled}
       type={type}
-      style={{display: display ? "" : "none"}}
+      color={color}
+      hoverColor={hoverColor}
     >{children}</StyledButton>
   )
 }

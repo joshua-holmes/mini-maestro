@@ -20,7 +20,8 @@ bottom: 0%;
 margin: 20px 0;
 `
 
-function CreateMusic({ user }) {
+function CreateMusic({ userState }) {
+  const [user, setUser] = userState;
   const navigate = useNavigate();
   const defaultAbc = {
     soprano: [],
@@ -265,9 +266,16 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
     fetch("/api/tunes", config)
     .then(r => {
       if (r.ok) {
-        r.json().then(() => {
+        r.json().then(tune => {
           localStorage.removeItem("songDetails");
           localStorage.removeItem("abc");
+          setUser({
+            ...user,
+            tunes: [
+              ...user.tunes,
+              tune,
+            ]
+          })
           navigate("/my-tunes");
         })
       } else {

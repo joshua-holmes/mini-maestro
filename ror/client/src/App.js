@@ -7,6 +7,7 @@ import HowItWorks from './components/HowItWorks';
 import AboutMe from './components/AboutMe';
 import Signup from './components/Signup';
 import Login from './components/Login';
+import MyTunes from './components/MyTunes';
 import { useEffect, useState } from 'react';
 
 function App() {
@@ -25,7 +26,7 @@ function App() {
       <NavBar setUser={setUser} />
       <Routes>
         <Route path="/" element={<Home firstName={user.first_name} />}/>
-        <Route path="/create-new" element={<CreateMusic user={user} />}/>
+        <Route path="/create-new" element={<CreateMusic userState={[user, setUser]} />}/>
         <Route path="/how-it-works" element={<HowItWorks />}/>
         <Route path="/about-me" element={<AboutMe />}/>
         <Route path="/sign-up" element={<Signup setUser={setUser}/>}/>
@@ -33,6 +34,9 @@ function App() {
           isLoggedIn={!!user.username}
           setUser={setUser}/>}
         />
+        <Route path="/my-tunes" element={<MyTunes userState={[user, setUser]} />}>
+          <Route path="/:id" element={<Tune userState={[user, setUser]} />} />
+        </Route>
       </Routes>
     </>
   );

@@ -2,11 +2,8 @@ import Navbar from 'react-bootstrap/Navbar';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import { LinkContainer } from 'react-router-bootstrap';
-import { Navigate, useNavigate } from "react-router-dom";
 
 function NavBar({ setUser }) {
-
-  const navigate = useNavigate();
 
   const logout = () => {
     fetch("/api/logout", {method: "DELETE"})
