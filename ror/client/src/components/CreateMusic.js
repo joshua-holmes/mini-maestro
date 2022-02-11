@@ -3,6 +3,7 @@ import { GrUndo } from "react-icons/gr";
 import Button from './Button';
 import SheetMusic from './SheetMusic';
 import AudioButton from "./AudioButton";
+import Spacer from "./Spacer";
 import Soprano from "../lib/soprano";
 import Alto from "../lib/alto";
 import Tenor from "../lib/tenor";
@@ -15,7 +16,7 @@ import MusicSetupForm from './MusicSetupForm';
 import { useNavigate } from 'react-router-dom';
 
 const ButtonContainer = styled.div`
-position: absolute;
+position: fixed;
 bottom: 0%;
 margin: 20px 0;
 `
@@ -340,6 +341,10 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
     }
   }
 
+  const handleStuff = e => {
+    console.log(e)
+  }
+
   return (
     <>
       {errors.map(err => <Alert key={err} variant="danger">{err}</Alert>)}
@@ -358,6 +363,7 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
           songDetails={songDetails}
           isEditable={abc.soprano.length === 0}
         />
+        
         <ButtonContainer>
           {activePart(abc) ? null : renderSuccessMessage()}
           {activePart(abc) && abcOptions ? renderOptions() : null}
@@ -379,6 +385,7 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
             ? <Button onClick={handleSave}>Save</Button> : null}
           </>}
         </ButtonContainer>
+        <Spacer space={120}/>
       </Container>
     </>
   )
