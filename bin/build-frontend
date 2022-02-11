@@ -10,6 +10,8 @@ if [[ $(ls $DIRECTORY/../ror/client) == *"package.json"* ]]; then
   echo "Building React app..."
   echo "---------------------------------------------------------------"
   npm install --prefix $DIRECTORY/../ror/client
+  npm install --prefix $DIRECTORY/../ror/client react-bootstrap-icons
+  npm install --prefix $DIRECTORY/../ror/client sass
   npm run build --prefix $DIRECTORY/../ror/client
 
   rm -fr $DIRECTORY/../ror/public/*
