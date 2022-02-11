@@ -1,7 +1,8 @@
 import styled from "styled-components";
 
 const StyledDiv = styled.div`
-margin-bottom: ${({space}) => space}px;
+padding-bottom: ${({space}) => space}px;
+background-color: red;
 `
 
 function Spacer({ space = 50 }) {
