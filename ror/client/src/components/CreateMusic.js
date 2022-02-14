@@ -320,7 +320,7 @@ ${!!trebleClef ? "V:T clef=treble\n": ""}${!!bassClef ? "V:B clef=bass\n": ""}${
   const renderSuccessMessage = () => (
     <><h5>Your piece is finished!{" "}
     {user.username ? <>Click 'Save' to save your piece!</> :
-    <><a href="#" onClick={() => handleNav("/login")}>Login</a> or 
+    <><a href="#" onClick={() => handleNav("/login")}>Login</a> or{" "}
     <a href="#" onClick={() => handleNav("/sign-up")}>create an account</a>{" "}
     to save it!</>}</h5></>
   )
