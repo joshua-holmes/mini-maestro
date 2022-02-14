@@ -7,7 +7,7 @@ background-color: red;
 
 function Spacer({ space = 50 }) {
   
-  return <StyledDiv space={space} />
+  return <StyledDiv space={space}>test</StyledDiv>
 }
 
 export default Spacer;
