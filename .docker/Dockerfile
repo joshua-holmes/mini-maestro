@@ -9,8 +9,17 @@ WORKDIR /ror
 COPY ./ror .
 # The 'build-frontend' script looks in a folder called 'ror', so it must be
 # placed one folder up from /ror
-COPY ./bin/build-frontend ..
-RUN ../build-frontend
+COPY ./bin/build-frontend ../bin
+
+# RUN build-frontend
+RUN npm install --prefix client
+RUN npm install react-bootstrap-icons --prefix client
+RUN npm install sass --prefix client
+RUN npm run build --prefix client
+RUN rm -fr public/*
+RUN mv client/build/* public/
+RUN ls public/
+
 RUN gem install bundler:2.3.4
 RUN bundle install
 RUN bundle add tzinfo-data

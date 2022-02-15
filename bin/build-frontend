@@ -5,6 +5,10 @@ set -e
 
 # Sets DIRECTORY variable to current directory of this file
 DIRECTORY=$(dirname "${BASH_SOURCE[0]}")
+echo "---------------------------------------------------------------"
+echo $DIRECTORY/../ror
+ls $DIRECTORY/../ror
+echo "---------------------------------------------------------------"
 if [[ $(ls $DIRECTORY/../ror/client) == *"package.json"* ]]; then
   echo "---------------------------------------------------------------"
   echo "Building React app..."
