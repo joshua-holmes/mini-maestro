@@ -5,17 +5,11 @@ set -e
 
 # Sets DIRECTORY variable to current directory of this file
 DIRECTORY=$(dirname "${BASH_SOURCE[0]}")
-echo "---------------------------------------------------------------"
-echo $DIRECTORY/../ror
-ls $DIRECTORY/../ror
-echo "---------------------------------------------------------------"
 if [[ $(ls $DIRECTORY/../ror/client) == *"package.json"* ]]; then
   echo "---------------------------------------------------------------"
   echo "Building React app..."
   echo "---------------------------------------------------------------"
   npm install --prefix $DIRECTORY/../ror/client
-  npm install --prefix $DIRECTORY/../ror/client react-bootstrap-icons
-  npm install --prefix $DIRECTORY/../ror/client sass
   npm run build --prefix $DIRECTORY/../ror/client
 
   rm -fr $DIRECTORY/../ror/public/*
