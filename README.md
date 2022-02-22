@@ -6,4 +6,6 @@ Joshua Holmes<br>
 [joshua.phillip.holmes@gmail.com](mailto:joshua.phillip.holmes@gmail.com)
 
 ## Description
-This project is still in development. The goal is to create an app that guides users through making their own musical composition using contrapuntal techniques on the backend to offer suggestions and boundaries on the frontend.
+Welcome to the Mini Maestro app! This app walks you through composing your very own music, even if you have no experience.
+
+For a demo, visit [mini-maestro.jpholmes.com](https://mini-maestro.jpholmes.com/).
