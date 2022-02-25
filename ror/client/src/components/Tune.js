@@ -35,10 +35,11 @@ function Tune({ userState }) {
     .then(r => {
       // If success
       if (r.ok) {
-        return r.json().then(data => {
+        return r.json().then(newTune => {
           const newTunes = user.tunes.map(oldTune => (
-            oldTune.id === tune.id ? tune : oldTune
+            oldTune.id === newTune.id ? newTune : oldTune
           ));
+          console.log(newTunes, newTune);
           setUser(() => ({...user, tunes: newTunes}));
           setSuccess(() => true);
           setTimeout(() => setSuccess(false), 3000);
